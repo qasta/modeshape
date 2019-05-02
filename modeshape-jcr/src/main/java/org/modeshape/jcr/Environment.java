@@ -16,7 +16,7 @@
 package org.modeshape.jcr;
 
 import java.util.Optional;
-import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.persistence.file.FileDbProvider;
 import org.modeshape.schematic.Schematic;
@@ -77,7 +77,7 @@ public interface Environment {
      * @return the channel, or null if there is no such channel and the environment does not support clustering
      * @throws Exception if there is a problem obtaining the named channel
      */
-    Channel getChannel(String name) throws Exception;
+    JChannel getChannel(String name) throws Exception;
 
     /**
      * Shutdown this environment, allowing it to reclaim any resources.

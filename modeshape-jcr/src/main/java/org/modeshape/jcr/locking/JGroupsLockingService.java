@@ -17,6 +17,7 @@ package org.modeshape.jcr.locking;
 
 import java.util.concurrent.locks.Lock;
 import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.jgroups.blocks.locking.LockService;
 import org.jgroups.protocols.CENTRAL_LOCK;
 import org.jgroups.stack.Protocol;
@@ -48,7 +49,7 @@ public class JGroupsLockingService extends AbstractLockingService<Lock> {
      * @param channel a {@link Channel} instance; may not be null
      * @param lockTimeoutMillis the number of millis to wait before timing out when attempting to obtain a lock
      */
-    public JGroupsLockingService(Channel channel, long lockTimeoutMillis) {
+    public JGroupsLockingService(JChannel channel, long lockTimeoutMillis) {
         super(lockTimeoutMillis);
         
         ProtocolStack protocolStack = channel.getProtocolStack();

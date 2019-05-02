@@ -63,7 +63,7 @@ import javax.security.auth.login.LoginContext;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
-import org.jgroups.Channel;
+import org.jgroups.JChannel;
 import org.modeshape.common.annotation.Immutable;
 import org.modeshape.common.collection.Problem;
 import org.modeshape.common.collection.Problems;
@@ -1044,7 +1044,7 @@ public class JcrRepository implements org.modeshape.jcr.api.Repository {
                     long lockTimeoutMillis = config.getLockTimeoutMillis();
                     if (clustering.isEnabled()) {
                         final String clusterName = clustering.getClusterName();
-                        Channel channel = environment().getChannel(clusterName);
+                        JChannel channel = environment().getChannel(clusterName);
                         if (channel != null) {
                             this.clusteringService = ClusteringService.startStandalone(clusterName, channel);
                         } else {

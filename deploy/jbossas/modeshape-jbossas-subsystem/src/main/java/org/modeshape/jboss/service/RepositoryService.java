@@ -37,7 +37,6 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.jboss.security.ISecurityManagement;
-import org.jgroups.Channel;
 import org.jgroups.JChannel;
 import org.jgroups.conf.XmlConfigurator;
 import org.modeshape.common.collection.Problems;
@@ -159,7 +158,7 @@ public class RepositoryService implements Service<JcrRepository>, Environment {
     }
 
     @Override
-    public Channel getChannel(String name) throws Exception {
+    public JChannel getChannel(String name) throws Exception {
         LOG.debugv("getting JGroups channel named '{0}'", name);
         final ChannelFactory channelFactory = channelFactoryInjector.getOptionalValue();
         if (channelFactory != null) {

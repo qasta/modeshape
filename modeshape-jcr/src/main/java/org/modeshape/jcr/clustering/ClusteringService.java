@@ -50,6 +50,7 @@ import org.jgroups.protocols.CENTRAL_LOCK;
 import org.jgroups.protocols.FORK;
 import org.jgroups.stack.Protocol;
 import org.jgroups.stack.ProtocolStack;
+import org.jgroups.stack.ProtocolStack.Position;
 import org.modeshape.common.SystemFailureException;
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
@@ -89,7 +90,7 @@ public abstract class ClusteringService {
     /**
      * The JGroups channel which will be used to send/receive event across the cluster
      */
-    protected Channel channel;
+    protected JChannel channel;
 
     /**
      * The maximum accepted clock delay between cluster members
@@ -234,7 +235,7 @@ public abstract class ClusteringService {
         }
         try {
             byte[] messageData = toByteArray(payload);
-            Message jgMessage = new Message(null, channel.getAddress(), messageData);
+            Message jgMessage = new Message(channel.getAddress(), messageData);
             channel.send(jgMessage);
             return true;
         } catch (Exception e) {
@@ -272,7 +273,7 @@ public abstract class ClusteringService {
      * @param channel a  {@link Channel} instance, may not be {@code null}
      * @return a {@link org.modeshape.jcr.clustering.ClusteringService} instance, never null
      */
-    public static ClusteringService startStandalone(String clusterName, Channel channel) {
+    public static ClusteringService startStandalone(String clusterName, JChannel channel) {
         ClusteringService clusteringService = new StandaloneClusteringService(clusterName, channel);
         clusteringService.init();
         return clusteringService;
@@ -284,7 +285,7 @@ public abstract class ClusteringService {
      * @param mainChannel a {@link Channel} instance; may not be null.
      * @return a {@link org.modeshape.jcr.clustering.ClusteringService} instance, never null
      */
-    public static ClusteringService startForked( Channel mainChannel ) {
+    public static ClusteringService startForked( JChannel mainChannel ) {
         if (!mainChannel.isConnected()) {
             throw new IllegalStateException(ClusteringI18n.channelNotConnected.text());                        
         }
@@ -317,7 +318,7 @@ public abstract class ClusteringService {
      * 
      * @return a {@code Channel} instance, never {@code null}
      */
-    public Channel getChannel() {
+    public JChannel getChannel() {
         return channel;
     }
 
@@ -380,17 +381,17 @@ public abstract class ClusteringService {
     @SuppressWarnings( "synthetic-access" )
     protected class Listener implements ChannelListener {
         @Override
-        public void channelClosed( Channel channel ) {
+        public void channelClosed( JChannel channel ) {
             isOpen.set(false);
         }
 
         @Override
-        public void channelConnected( Channel channel ) {
+        public void channelConnected( JChannel channel ) {
             isOpen.set(true);
         }
 
         @Override
-        public void channelDisconnected( Channel channel ) {
+        public void channelDisconnected( JChannel channel ) {
             isOpen.set(false);
         }
     }
@@ -437,7 +438,7 @@ public abstract class ClusteringService {
             this.channel = null;
         }
 
-        protected StandaloneClusteringService( String clusterName, Channel channel ) {
+        protected StandaloneClusteringService( String clusterName, JChannel channel ) {
             super(clusterName);
             this.jgroupsConfig = null;
             this.channel = channel;
@@ -520,9 +521,9 @@ public abstract class ClusteringService {
     private static class ForkedClusteringService extends ClusteringService {
         private final static String FORK_CHANNEL_NAME = "modeshape-fork-channel";
         private final static Map<String, List<String>> FORK_STACKS_BY_CHANNEL_NAME = new HashMap<>();
-        private final Channel mainChannel;
+        private final JChannel mainChannel;
 
-        protected ForkedClusteringService( Channel mainChannel ) {
+        protected ForkedClusteringService( JChannel mainChannel ) {
             super(mainChannel.getClusterName());
             this.mainChannel = mainChannel;
         }
@@ -539,12 +540,12 @@ public abstract class ClusteringService {
                     // this is workaround for this bug: https://issues.jboss.org/browse/JGRP-1984
                     FORK fork = new FORK();
                     fork.setProtocolStack(stack);
-                    stack.insertProtocol(fork, ProtocolStack.ABOVE, topProtocol.getClass());
+                    stack.insertProtocol(fork, Position.ABOVE, topProtocol.getClass());
                 }
 
                 // add the fork at the top of the stack to preserve the default configuration
                 // and use the name of the cluster as the stack id
-                this.channel = new ForkChannel(mainChannel, forkStackId, FORK_CHANNEL_NAME, new CENTRAL_LOCK());
+                this.channel = new ForkChannel(mainChannel, forkStackId, FORK_CHANNEL_NAME/*, new CENTRAL_LOCK()*/);
                 
                 // Add a listener through which we'll know what's going on within the cluster ...
                 this.channel.addChannelListener(listener);
